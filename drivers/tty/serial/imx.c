@@ -35,7 +35,9 @@
 #include <linux/delay.h>
 #include <linux/rational.h>
 #include <linux/slab.h>
+#include <linux/gpio.h>
 #include <linux/of.h>
+#include <linux/of_gpio.h>
 #include <linux/of_device.h>
 #include <linux/io.h>
 #include <linux/dma-mapping.h>
@@ -241,6 +243,8 @@ struct imx_port {
 	unsigned int            saved_reg[10];
 #define DMA_TX_IS_WORKING 1
 	unsigned long		flags;
+	int			re_gpio;
+	int			de_gpio;
 };
 
 struct imx_port_ucrs {
@@ -392,6 +396,15 @@ static void imx_stop_tx(struct uart_port *port)
 
 	temp = readl(port->membase + UCR1);
 	writel(temp & ~UCR1_TXMPTYEN, port->membase + UCR1);
+
+	/* JCI - for RS-485 ports: disable RS-485 Transmit Enables and disable TC Intr */
+	if (gpio_is_valid(sport->de_gpio) && readl(port->membase + USR2) & USR2_TXDC) {
+		gpio_set_value(sport->de_gpio, 0);
+
+		temp = readl(port->membase + UCR4);
+		temp &= ~UCR4_TCEN;
+		writel(temp, port->membase + UCR4);
+	}
 
 	/* in rs485 mode disable transmitter if shifter is empty */
 	if (port->rs485.flags & SER_RS485_ENABLED &&
@@ -594,6 +607,15 @@ static void imx_start_tx(struct uart_port *port)
 {
 	struct imx_port *sport = (struct imx_port *)port;
 	unsigned long temp;
+
+	/* JCI - for RS-485 ports: set Transmitter Enable and enable TC Intr */
+	if (gpio_is_valid(sport->de_gpio)) {
+		gpio_set_value(sport->de_gpio, 1);
+
+		temp = readl(port->membase + UCR4);
+		temp |= UCR4_TCEN;
+		writel(temp, port->membase + UCR4);
+	}
 
 	if (port->rs485.flags & SER_RS485_ENABLED) {
 		/* enable transmitter and shifter empty irq */
@@ -1939,6 +1961,18 @@ static int serial_imx_probe_dt(struct imx_port *sport,
 		sport->dte_mode = 1;
 
 	sport->devdata = of_id->data;
+
+	/* JCI - init RS-485 RE-GPIO and DE-GPIO lines defined in DTB */
+	sport->re_gpio = of_get_named_gpio(np, "re-gpios", 0);
+	if (gpio_is_valid(sport->re_gpio)) {
+		if(devm_gpio_request_one(&pdev->dev, sport->re_gpio, GPIOF_OUT_INIT_LOW, "re-gpio") == 0)
+			dev_err(&pdev->dev, "ttymxc%i re-gpio initialized (%i)\n", sport->port.line, sport->re_gpio);
+	}
+	sport->de_gpio = of_get_named_gpio(np, "de-gpios", 0);
+	if (gpio_is_valid(sport->de_gpio)) {
+		if(devm_gpio_request_one(&pdev->dev, sport->de_gpio, GPIOF_OUT_INIT_LOW, "de-gpio") == 0)
+			dev_err(&pdev->dev, "ttymxc%i de-gpio initialized (%i)\n", sport->port.line, sport->de_gpio);
+	}
 
 	return 0;
 }

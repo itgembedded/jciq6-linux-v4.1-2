@@ -35,11 +35,11 @@
 		mmc1 = &usdhc2;
 		mmc2 = &usdhc3;
 		mmc3 = &usdhc4;
-		serial0 = &uart1;
-		serial1 = &uart2;
-		serial2 = &uart3;
-		serial3 = &uart4;
-		serial4 = &uart5;
+		serial0 = &uart1; 	
+		serial1 = &uart5; /* JCI - Reorder Serial Ports */
+		serial2 = &uart4;
+		serial3 = &uart3;
+		serial4 = &uart2;
 		spi0 = &ecspi1;
 		spi1 = &ecspi2;
 		spi2 = &ecspi3;
