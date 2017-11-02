@@ -293,7 +293,7 @@
 		interrupt-parent = <&gpio5>;
 		interrupts = <18 IRQ_TYPE_EDGE_FALLING>;
 		rs-gpios = <&gpio5 23 0>;
-		act-gpios = <&gpio1 0 0>;
+		act-gpios = <&gpio5 25 0>;
 		linux,wakeup;
 	};
 
@@ -599,7 +599,7 @@
 			fsl,pins = <
 				MX6QDL_PAD_CSI0_PIXCLK__GPIO5_IO18	0x1b0b0 /* Interrupt */
 				MX6QDL_PAD_CSI0_DAT5__GPIO5_IO23	0x1b0b0 /* Reset */
-				MX6QDL_PAD_GPIO_0__GPIO1_IO00		0x1b0b0 /* Active LED */
+				MX6QDL_PAD_CSI0_DAT7__GPIO5_IO25	0x1b0b0 /* Active LED */
 			>;
 		};
 
