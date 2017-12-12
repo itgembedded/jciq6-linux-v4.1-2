@@ -140,7 +140,7 @@ static int watchdog_stop(struct watchdog_device *wddev)
 		goto out_stop;
 
 	if (test_bit(WDOG_NO_WAY_OUT, &wddev->status)) {
-		dev_info(wddev->dev, "nowayout prevents watchdog being stopped!\n");
+//		dev_info(wddev->dev, "nowayout prevents watchdog being stopped!\n");
 		err = -EBUSY;
 		goto out_stop;
 	}
@@ -514,13 +514,13 @@ static int watchdog_release(struct inode *inode, struct file *file)
 		err = watchdog_stop(wdd);
 
 	/* If the watchdog was not stopped, send a keepalive ping */
-	if (err < 0) {
+	if ((err < 0) && (err != -EBUSY)) {	/* ignore if WDOG_NO_WAY_OUT */
 		mutex_lock(&wdd->lock);
 		if (!test_bit(WDOG_UNREGISTERED, &wdd->status))
 			dev_crit(wdd->dev, "watchdog did not stop!\n");
 		mutex_unlock(&wdd->lock);
-		watchdog_ping(wdd);
 	}
+	watchdog_ping(wdd);	/* always runs, even if WDOG_NO_WAY_OUT */
 
 	/* Allow the owner module to be unloaded again */
 	module_put(wdd->ops->owner);

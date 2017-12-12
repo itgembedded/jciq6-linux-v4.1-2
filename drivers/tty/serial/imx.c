@@ -399,7 +399,8 @@ static void imx_stop_tx(struct uart_port *port)
 
 	/* JCI - for RS-485 ports: disable RS-485 Transmit Enables and disable TC Intr */
 	if (gpio_is_valid(sport->de_gpio) && readl(port->membase + USR2) & USR2_TXDC) {
-		gpio_set_value(sport->de_gpio, 0);
+		gpio_set_value(sport->de_gpio, 0);	/* TX Disabled */
+		gpio_set_value(sport->re_gpio, 0);	/* RX Enabled */
 
 		temp = readl(port->membase + UCR4);
 		temp &= ~UCR4_TCEN;
@@ -610,7 +611,8 @@ static void imx_start_tx(struct uart_port *port)
 
 	/* JCI - for RS-485 ports: set Transmitter Enable and enable TC Intr */
 	if (gpio_is_valid(sport->de_gpio)) {
-		gpio_set_value(sport->de_gpio, 1);
+		gpio_set_value(sport->re_gpio, 1);	/* RX Disabled */
+		gpio_set_value(sport->de_gpio, 1);	/* TX Enabled */
 
 		temp = readl(port->membase + UCR4);
 		temp |= UCR4_TCEN;
@@ -1963,12 +1965,12 @@ static int serial_imx_probe_dt(struct imx_port *sport,
 	sport->devdata = of_id->data;
 
 	/* JCI - init RS-485 RE-GPIO and DE-GPIO lines defined in DTB */
-	sport->re_gpio = of_get_named_gpio(np, "re-gpios", 0);
+	sport->re_gpio = of_get_named_gpio(np, "re-gpios", 0);	/* RX Enabled, active LO */
 	if (gpio_is_valid(sport->re_gpio)) {
 		if(devm_gpio_request_one(&pdev->dev, sport->re_gpio, GPIOF_OUT_INIT_LOW, "re-gpio") == 0)
 			dev_err(&pdev->dev, "ttymxc%i re-gpio initialized (%i)\n", sport->port.line, sport->re_gpio);
 	}
-	sport->de_gpio = of_get_named_gpio(np, "de-gpios", 0);
+	sport->de_gpio = of_get_named_gpio(np, "de-gpios", 0);	/* TX Disabled, active HI */
 	if (gpio_is_valid(sport->de_gpio)) {
 		if(devm_gpio_request_one(&pdev->dev, sport->de_gpio, GPIOF_OUT_INIT_LOW, "de-gpio") == 0)
 			dev_err(&pdev->dev, "ttymxc%i de-gpio initialized (%i)\n", sport->port.line, sport->de_gpio);

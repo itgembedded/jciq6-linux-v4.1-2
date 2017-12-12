@@ -22,20 +22,24 @@
 		compatible = "gpio-leds";
 
 		sys_active-led {
-			gpios = <&gpio2 9 1>;
-			linux,default-trigger = "heartbeat";
+			gpios = <&gpio2 9 1>;	/* really ACTIVE HI but this way for JCI compat */
+			default-state = "on";
+			/* linux,default-trigger = "heartbeat"; */
 		};
 
 		sd-activity-led {
-			gpios = <&gpio1 6 0>;
+			gpios = <&gpio1 6 0>;	/* Active HI */
+			default-state = "off";
 			linux,default-trigger = "mmc1";  /*SD activity LED*/
 		};
 
 		user-led-1 {
-			gpios = <&gpio1 16 1>;
+			gpios = <&gpio1 16 1>;	/* really ACTIVE HI but this way for JCI compat */
+			default-state = "on";
 		};
 		user-led-2 {
-			gpios = <&gpio1 18 1>;
+			gpios = <&gpio1 18 1>;	/* really ACTIVE HI but this way for JCI compat */
+			default-state = "on";
 		};
 	};
 
@@ -597,9 +601,9 @@
 
 		pinctrl_sx8654: sx8654grp {
 			fsl,pins = <
-				MX6QDL_PAD_CSI0_PIXCLK__GPIO5_IO18	0x1b0b0 /* Interrupt */
-				MX6QDL_PAD_CSI0_DAT5__GPIO5_IO23	0x1b0b0 /* Reset */
-				MX6QDL_PAD_CSI0_DAT7__GPIO5_IO25	0x1b0b0 /* Active LED */
+				MX6QDL_PAD_CSI0_PIXCLK__GPIO5_IO18	0x100b0 /* Interrupt */
+				MX6QDL_PAD_CSI0_DAT5__GPIO5_IO23	0x100b0 /* Reset */
+				MX6QDL_PAD_CSI0_DAT7__GPIO5_IO25	0x100b0 /* Active LED */
 			>;
 		};
 
