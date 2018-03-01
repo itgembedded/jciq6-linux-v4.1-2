@@ -136,10 +136,6 @@
 	};
 };
 
-&cpu0 {
-	arm-supply = <&sw1a_reg>;
-	soc-supply = <&sw1c_reg>;
-};
 
 &clks {
 	fsl,ldb-di0-parent = <&clks IMX6QDL_CLK_PLL2_PFD0_352M>;
@@ -333,11 +329,7 @@
 };
 
 
-/* THIS MAY BE USEFUL IN FUTURE.
-** Have a look at ldo-bypass, how this could save some power
-** for now, leave it commented out */
-
-/* 
+/* if trying bypass mode, also need to update arm-supply, soc-supply
 &gpc {	
 	fsl,ldo-bypass = <1>; 
 	fsl,wdog-reset = <1>; 
